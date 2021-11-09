@@ -17,7 +17,29 @@ async function run() {
         await client.connect();
         const database = client.db("jerins_parlour");
         const serviceCollection = database.collection("services");
+        const userCollection = database.collection("users");
 
+        //Recieve Users from the website whene user will Register/Login
+        //From the CreateUserPasword Auth
+        app.post('/users', async (req, res) => {
+            const user = req.body;
+            const result = await userCollection.insertOne(user)
+            res.json(result)
+        })
+        //From the Google login Auth
+        app.put('/users', async (req, res) => {
+            const user = req.body;
+            const filter = { email: user.email }
+            const options = { upsert: true };
+            const updateDoc = { $set: user }
+            const result = await userCollection.updateOne(filter, updateDoc, options)
+            res.json(result)
+        });
+        app.get('/users', async (req, res) => {
+            const user = userCollection.find({})
+            const result = await user.toArray();
+            res.json(result);
+        })
         //Get services from database
         app.get('/services', async (req, res) => {
             const services = serviceCollection.find({})
